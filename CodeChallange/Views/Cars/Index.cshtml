@@ -1,0 +1,153 @@
+﻿@using Newtonsoft.Json;
+@model IEnumerable<CodeChallange.Models.Car>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<div class="alert alert-success" id="success-alert" style="display:none">
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Make)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Model)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Year)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Doors)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Color)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Make)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Model)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Year)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Doors)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Color)
+                </td>
+                <td>
+                    <div id="@item.Id">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#priceModal" data-bs-object="@JsonConvert.SerializeObject(item)">
+                            Guess the price
+                        </button>
+                    </div>
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="priceModal" tabindex="-1" aria-labelledby="priceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="priceModalLabel">Guess the Price</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" id="error-alert" style="display:none">
+                    <div>Sorry, wrong value. Try again</div>
+                </div>
+                <form>
+                    <div class="mb-3" id="details">
+
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="col-form-label">Price:</label>
+                        <input type="number" class="form-control" id="inputPrice">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="validatePrice()">Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var selectedCarPrice = 0;
+    var selectedId = 0;
+
+    const priceModal = document.getElementById('priceModal')
+    priceModal.addEventListener('show.bs.modal', event => {
+
+        const button = event.relatedTarget
+        const item = JSON.parse(button.getAttribute('data-bs-object'))
+
+        const modalTitle = priceModal.querySelector('.modal-title')
+        const modalBodyInput = priceModal.querySelector('.modal-body input')
+
+        modalTitle.textContent = `Guess the Price`
+        selectedCarPrice = item.Price
+        selectedId = item.Id
+
+        document.getElementById('details').innerHTML = ` <p>${item.Make} ${item.Model} - ${item.Color} - ${item.Year} - ${item.Doors} doors</p> `
+
+        document.getElementById('success-alert').innerHTML = ` <div>Congratulations! You guessed the price for ${item.Make} ${item.Model} - ${item.Color} - ${item.Year} - ${item.Doors} doors</div> `
+    })
+
+    function validatePrice() {
+
+        let inputPrice = parseInt(document.getElementById('inputPrice').value)
+
+        if (inputPrice >= (selectedCarPrice - 2500) && inputPrice <= (selectedCarPrice + 2500)) {
+            bootstrap.Modal.getInstance(priceModal).hide()
+            $("#success-alert").fadeTo(2000, 500).slideUp(500, function () {
+                $("#success-alert").slideUp(500);
+            });
+            document.getElementById(selectedId).innerHTML = `${selectedCarPrice}`
+            setTimeout(function () {
+                bootstrap.Alert.getOrCreateInstance($("#success-alert")).close();
+            }, 3000)
+        }
+        else {
+            $("#error-alert").fadeTo(2000, 500).slideUp(500, function () {
+                $("#error-alert").slideUp(500);
+            });
+            setTimeout(function () {
+                bootstrap.Alert.getOrCreateInstance($("#error-alert")).close();
+            }, 3000)
+        }
+    }
+
+</script>
